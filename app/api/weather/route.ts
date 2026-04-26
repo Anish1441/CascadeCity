@@ -1,13 +1,23 @@
 import { NextResponse } from "next/server";
-import { WEATHER_CITIES, fetchCityWeather, getMockWeatherData, calculateHeatIndex, getWeatherCondition } from "@/lib/weather";
+import {
+  WEATHER_CITIES,
+  fetchCityWeather,
+  fetchCityAQI,
+  getMockWeatherData,
+  getWeatherCondition,
+  calculateHeatIndex,
+} from "@/lib/weather";
 
 export async function GET() {
   try {
     const results = await Promise.all(
       WEATHER_CITIES.map(async (c) => {
-        const data = await fetchCityWeather(c.lat, c.lon);
-        if (data) {
-          return { city: c.city, ...data };
+        const [weather, aqi] = await Promise.all([
+          fetchCityWeather(c.lat, c.lon),
+          fetchCityAQI(c.lat, c.lon),
+        ]);
+        if (weather) {
+          return { city: c.city, ...weather, aqi };
         }
         // fallback mock
         const temp = 28 + Math.random() * 12;
@@ -23,6 +33,7 @@ export async function GET() {
           weatherCode: 1,
           condition: getWeatherCondition(1),
           heatIndex: calculateHeatIndex(temp, humidity),
+          aqi: null,
         };
       })
     );

@@ -104,6 +104,7 @@ export default async function DashboardPage() {
                   windSpeed: number;
                   condition: string;
                   heatIndex: number;
+                  aqi?: number | null;
                 }) => (
                   <div key={w.city} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
                     <div>
@@ -114,6 +115,11 @@ export default async function DashboardPage() {
                       <p className="text-orange-400 font-semibold">{Math.round(w.temperature)}°C</p>
                       <p className="text-xs text-slate-400">
                         HI: {Math.round(w.heatIndex)}°C | {Math.round(w.humidity)}% RH
+                        {w.aqi != null && (
+                          <span className={`ml-1 font-medium ${w.aqi <= 50 ? "text-emerald-400" : w.aqi <= 100 ? "text-yellow-400" : w.aqi <= 150 ? "text-orange-400" : "text-red-400"}`}>
+                            {" "}| AQI&nbsp;{w.aqi}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>

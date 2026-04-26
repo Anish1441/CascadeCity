@@ -9,6 +9,7 @@ export interface CityWeather {
   weatherCode: number;
   condition: string;
   heatIndex: number;
+  aqi?: number | null;
 }
 
 export const WEATHER_CITIES = [
@@ -86,6 +87,23 @@ export async function fetchCityWeather(
       condition: getWeatherCondition(curr.weather_code),
       heatIndex: calculateHeatIndex(temp, humidity),
     };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchCityAQI(lat: number, lon: number): Promise<number | null> {
+  const token = process.env.WAQI_API_TOKEN;
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`,
+      { next: { revalidate: 1800 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status !== "ok") return null;
+    return typeof data.data?.aqi === "number" ? data.data.aqi : null;
   } catch {
     return null;
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -16,6 +16,13 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <nav className="flex flex-col h-full">
@@ -28,7 +35,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      <ul className="flex-1 py-4 space-y-1 px-2">
+      <ul className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -48,7 +55,14 @@ export default function Navbar() {
           );
         })}
       </ul>
-      <div className="p-4 border-t border-slate-700">
+      <div className="p-4 border-t border-slate-700 space-y-3">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+        >
+          <span className="text-lg leading-none">🚪</span>
+          <span>Logout</span>
+        </button>
         <div className="text-xs text-slate-500 text-center">
           Maharashtra Heat Intelligence v1.0
         </div>
@@ -56,3 +70,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
