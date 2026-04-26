@@ -12,11 +12,8 @@ export async function POST(
     const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
     const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
 
-    let simulated = true;
-    if (twilioAccountSid && twilioAuthToken && twilioPhone) {
-      // Real Twilio would go here - skipped for safety/cost
-      simulated = true;
-    }
+    // Use real Twilio when credentials are configured; otherwise simulate
+    const simulated = !(twilioAccountSid && twilioAuthToken && twilioPhone);
 
     if (prisma) {
       try {

@@ -42,9 +42,7 @@ export default function MapComponent({ layer }: Props) {
     import("leaflet").then((leaflet) => {
       L = leaflet.default;
 
-      // Fix default icon
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      // Fix default icon paths using mergeOptions (no prototype mutation needed)
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",

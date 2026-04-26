@@ -7,9 +7,13 @@ export async function POST(req: NextRequest) {
     const { districtId, category, prompt } = await req.json();
     const district = districtId ? DISTRICTS.find((d) => d.id === districtId) : null;
 
-    // Sanitize user prompt to prevent injection - strip special characters and limit length
+    // Sanitize user prompt: strip control chars, prompt-injection patterns, and limit length
     const sanitizedPrompt = prompt
-      ? String(prompt).replace(/[<>{}[\]\\]/g, "").slice(0, 300)
+      ? String(prompt)
+          .replace(/[<>{}[\]\\]/g, "")
+          // Remove common injection patterns (ignore/override/system instructions)
+          .replace(/\b(ignore|override|forget|disregard|system|instruction|previous|above)\b/gi, "")
+          .slice(0, 300)
       : "";
 
     const groq = getGroqClient();

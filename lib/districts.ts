@@ -206,6 +206,7 @@ export const DISTRICTS: District[] = [
   },
   {
     id: "aurangabad",
+    // Officially renamed from Aurangabad to Chhatrapati Sambhajinagar in 2023; both names retained for recognition
     name: "Aurangabad (Chhatrapati Sambhajinagar)",
     code: "AUR",
     division: "Aurangabad",
