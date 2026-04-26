@@ -119,13 +119,14 @@ export default function MapComponent({ layer }: Props) {
         if (!mapRef.current) return;
         const score = getScore(district, layer);
         const color = getStressColor(score);
+        const mapInstance = mapRef.current;
         const circle = L.circle([district.lat, district.lng], {
           color,
           fillColor: color,
           fillOpacity: 0.55,
           radius: 25000,
           weight: 1,
-        }).addTo(mapRef.current!);
+        }).addTo(mapInstance);
 
         const layerLabel =
           layer === "stress" ? "Heat Stress" : layer === "water" ? "Water Stress" : "Crop Risk";

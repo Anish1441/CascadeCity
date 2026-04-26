@@ -7,6 +7,11 @@ export async function POST(req: NextRequest) {
     const { districtId, category, prompt } = await req.json();
     const district = districtId ? DISTRICTS.find((d) => d.id === districtId) : null;
 
+    // Sanitize user prompt to prevent injection - strip special characters and limit length
+    const sanitizedPrompt = prompt
+      ? String(prompt).replace(/[<>{}[\]\\]/g, "").slice(0, 300)
+      : "";
+
     const groq = getGroqClient();
     if (!groq) {
       // Fallback mock policy
@@ -42,8 +47,8 @@ Estimated cost: ₹2.5 crore for district-level implementation
     const contextPrompt = district
       ? `Generate a detailed government policy for ${district.name} district (Division: ${district.division}). 
          Current metrics: Heat Stress Score ${district.stressScore}/100, Water Stress ${district.waterStress}/100, Crop Damage Risk ${district.cropDamageRisk}/100.
-         Category: ${category}. ${prompt || ""}`
-      : `Generate a detailed government policy for Maharashtra state. Category: ${category}. ${prompt || ""}`;
+         Category: ${category}. ${sanitizedPrompt}`
+      : `Generate a detailed government policy for Maharashtra state. Category: ${category}. ${sanitizedPrompt}`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-70b-versatile",

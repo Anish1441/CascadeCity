@@ -186,7 +186,7 @@ export default async function DashboardPage() {
           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-500 rounded-full inline-block" />Critical (80+)</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-orange-500 rounded-full inline-block" />High (70-79)</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-yellow-500 rounded-full inline-block" />Medium (60-69)</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-emerald-500 rounded-full inline-block" />Low (&lt;60)</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-emerald-500 rounded-full inline-block" />Low (&lt; 60)</span>
         </div>
       </div>
 
