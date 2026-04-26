@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model District {
+  id                 String    @id @default(uuid())
+  name               String    @unique
+  region             String
+  stressScore        Int       @default(0) @map("stress_score")
+  waterStress        Int       @default(0) @map("water_stress")
+  rainfallDeviation  Int       @default(0) @map("rainfall_deviation")
+  primaryCrop        String    @map("primary_crop")
+  latitude           Float
+  longitude          Float
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  talukas   Taluka[]
+  alerts    Alert[]
+  policies  Policy[]
+  users     User[]
+
+  @@map("districts")
+}
+
+model Taluka {
+  id          String   @id @default(uuid())
+  districtId  String   @map("district_id")
+  name        String
+  stressScore Int      @default(0) @map("stress_score")
+  crop        String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  district District  @relation(fields: [districtId], references: [id])
+  farmers  Farmer[]
+
+  @@map("talukas")
+}
+
+model Farmer {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  name      String
+  talukaId  String   @map("taluka_id")
+  crop      String
+  landSize  Float    @map("land_size")
+  language  String   @default("en")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  taluka          Taluka          @relation(fields: [talukaId], references: [id])
+  alertDeliveries AlertDelivery[]
+
+  @@map("farmers")
+}
+
+model Alert {
+  id              String    @id @default(uuid())
+  districtId      String    @map("district_id")
+  type            String
+  severity        String
+  message         String
+  farmerMessage   String?   @map("farmer_message")
+  officerMessage  String?   @map("officer_message")
+  channel         String
+  scheduledAt     DateTime? @map("scheduled_at")
+  sentAt          DateTime? @map("sent_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  district   District        @relation(fields: [districtId], references: [id])
+  deliveries AlertDelivery[]
+
+  @@map("alerts")
+}
+
+model AlertDelivery {
+  id          String    @id @default(uuid())
+  alertId     String    @map("alert_id")
+  farmerId    String    @map("farmer_id")
+  status      String    @default("pending")
+  deliveredAt DateTime? @map("delivered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  alert  Alert  @relation(fields: [alertId], references: [id])
+  farmer Farmer @relation(fields: [farmerId], references: [id])
+
+  @@map("alert_deliveries")
+}
+
+model Policy {
+  id                  String    @id @default(uuid())
+  districtId          String    @map("district_id")
+  title               String
+  description         String
+  status              String    @default("created")
+  benefitScore        Int       @default(0) @map("benefit_score")
+  costScore           Int       @default(0) @map("cost_score")
+  feasibilityScore    Int       @default(0) @map("feasibility_score")
+  impactDescription   String?   @map("impact_description")
+  createdById         String?   @map("created_by")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  district  District        @relation(fields: [districtId], references: [id])
+  createdBy User?           @relation(fields: [createdById], references: [id])
+  comments  PolicyComment[]
+
+  @@map("policies")
+}
+
+model PolicyComment {
+  id        String   @id @default(uuid())
+  policyId  String   @map("policy_id")
+  userId    String   @map("user_id")
+  comment   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  policy Policy @relation(fields: [policyId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("policy_comments")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  phone      String    @unique
+  name       String
+  email      String?
+  role       String    @default("farmer")
+  districtId String?   @map("district_id")
+  status     String    @default("pending")
+  otp        String?
+  otpExpiry  DateTime? @map("otp_expiry")
+  lastLogin  DateTime? @map("last_login")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  district       District?       @relation(fields: [districtId], references: [id])
+  policies       Policy[]
+  policyComments PolicyComment[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  details      Json?
+  ipAddress    String?  @map("ip_address")
+  timestamp    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_log")
+}
+
+model WeatherCache {
+  id          String   @id @default(uuid())
+  cityName    String   @unique @map("city_name")
+  heatIndex   Float    @map("heat_index")
+  temperature Float
+  humidity    Int
+  aqi         Int?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("weather_cache")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  role      String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
