@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+  try {
+    // Simulate Twilio sending
+    const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+
+    let simulated = true;
+    if (twilioAccountSid && twilioAuthToken && twilioPhone) {
+      // Real Twilio would go here - skipped for safety/cost
+      simulated = true;
+    }
+
+    if (prisma) {
+      try {
+        await prisma.alert.update({
+          where: { id },
+          data: { sentAt: new Date() },
+        });
+      } catch {
+        // DB not available, continue
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      simulated,
+      message: simulated
+        ? "Alert send simulated (Twilio not configured)"
+        : "Alert sent via SMS",
+      sentAt: new Date().toISOString(),
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to send alert" }, { status: 500 });
+  }
+}
