@@ -94,7 +94,18 @@ export async function fetchCityWeather(
 
 export async function fetchCityAQI(lat: number, lon: number): Promise<number | null> {
   const token = process.env.WAQI_API_TOKEN;
-  if (!token) return null;
+  if (!token) {
+    // Log a one-time warning per process when AQI data is requested but not configured
+    const g = globalThis as Record<string, unknown>;
+    if (!g.__waqiWarned) {
+      g.__waqiWarned = true;
+      console.warn(
+        "[CascadeCity] WAQI_API_TOKEN is not set. Air Quality Index (AQI) data will not be available. " +
+          "Get a free token at https://aqicn.org/data-platform/token/"
+      );
+    }
+    return null;
+  }
   try {
     const res = await fetch(
       `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`,

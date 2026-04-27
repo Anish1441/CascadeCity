@@ -3,8 +3,6 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/api/auth", "/_next", "/favicon.ico"];
 
-const DEV_FALLBACK_SECRET = "cascade-city-dev-only-secret-do-not-use-in-prod";
-
 /** Decode base64url to a plain string (no Node.js Buffer required — runs in Edge runtime). */
 function base64urlDecode(str: string): string {
   const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
@@ -36,7 +34,14 @@ async function isTokenValid(token: string): Promise<boolean> {
     const sigBytes = hexToBytes(sigHex);
     if (sigBytes.byteLength === 0) return false;
 
-    const secret = process.env.AUTH_SECRET ?? DEV_FALLBACK_SECRET;
+    // In production, missing AUTH_SECRET is a misconfiguration — treat token as invalid.
+    // In development a well-known fallback is used so the app stays usable without secrets.
+    const secret =
+      process.env.AUTH_SECRET ??
+      (process.env.NODE_ENV !== "production"
+        ? "cascade-city-dev-only-secret-do-not-use-in-prod"
+        : null);
+    if (!secret) return false; // production without AUTH_SECRET → reject all tokens
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
       "raw",
