@@ -70,7 +70,6 @@ export default function MobileHeader() {
             </div>
             <div
               className="flex-1 overflow-y-auto"
-              onClick={() => setOpen(false)}
             >
               <Navbar />
             </div>

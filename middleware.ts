@@ -3,7 +3,65 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/api/auth", "/_next", "/favicon.ico"];
 
-export function middleware(req: NextRequest) {
+const DEV_FALLBACK_SECRET = "cascade-city-dev-only-secret-do-not-use-in-prod";
+
+/** Decode base64url to a plain string (no Node.js Buffer required — runs in Edge runtime). */
+function base64urlDecode(str: string): string {
+  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return atob(padded);
+}
+
+/** Hex string → ArrayBuffer (required type for Web Crypto verify) */
+function hexToBytes(hex: string): ArrayBuffer {
+  const pairs = hex.match(/.{2}/g);
+  const buf = new ArrayBuffer(pairs ? pairs.length : 0);
+  if (pairs) {
+    const view = new Uint8Array(buf);
+    pairs.forEach((b, i) => { view[i] = parseInt(b, 16); });
+  }
+  return buf;
+}
+
+/**
+ * Verify a session token using the Web Crypto API.
+ * Compatible with the Edge runtime (no Node.js crypto module needed).
+ */
+async function isTokenValid(token: string): Promise<boolean> {
+  try {
+    const dotIdx = token.lastIndexOf(".");
+    if (dotIdx === -1) return false;
+    const payload = token.slice(0, dotIdx);
+    const sigHex = token.slice(dotIdx + 1);
+    const sigBytes = hexToBytes(sigHex);
+    if (sigBytes.byteLength === 0) return false;
+
+    const secret = process.env.AUTH_SECRET ?? DEV_FALLBACK_SECRET;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      sigBytes,
+      encoder.encode(payload).buffer as ArrayBuffer
+    );
+    if (!valid) return false;
+
+    const decoded = JSON.parse(base64urlDecode(payload));
+    return typeof decoded.exp === "number" && Date.now() <= decoded.exp;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public paths and static assets
@@ -11,9 +69,9 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for session cookie
-  const session = req.cookies.get("cc_session")?.value;
-  if (!session) {
+  // Verify session token — presence check + signature + expiry
+  const token = req.cookies.get("cc_session")?.value;
+  if (!token || !(await isTokenValid(token))) {
     const loginUrl = new URL("/login", req.url);
     if (pathname !== "/") {
       loginUrl.searchParams.set("from", pathname);

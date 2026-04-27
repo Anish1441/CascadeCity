@@ -127,16 +127,24 @@ export default function LoginPage() {
 
               {devOtp && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-3">
-                  <p className="text-amber-300 text-xs font-medium">
-                    🔧 Dev mode — your OTP is{" "}
-                    <span
-                      className="font-bold text-lg text-amber-400 cursor-pointer"
-                      onClick={() => setOtp(devOtp)}
-                    >
-                      {devOtp}
-                    </span>{" "}
-                    <span className="text-amber-500">(click to fill)</span>
+                  <p className="text-amber-300 text-xs font-semibold uppercase tracking-wide mb-1">
+                    ⚠️ Development Mode — OTP not delivered via SMS
                   </p>
+                  <p className="text-amber-300 text-xs">
+                    This OTP is only visible because Twilio is not configured.{" "}
+                    <span className="text-red-400 font-medium">
+                      This screen must never appear in production.
+                    </span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOtp(devOtp)}
+                    className="mt-2 font-bold text-2xl text-amber-400 font-mono tracking-[0.4em] hover:text-amber-300 transition-colors"
+                    aria-label="Click to autofill OTP"
+                  >
+                    {devOtp}
+                  </button>
+                  <p className="text-amber-600 text-xs mt-0.5">(click to fill)</p>
                 </div>
               )}
 

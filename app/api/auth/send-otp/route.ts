@@ -34,16 +34,23 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json({ success: true, delivered: true });
       } catch {
-        // Twilio failed — fall through to dev/mock mode
+        // Twilio failed — fall through
       }
     }
 
-    // Dev/demo mode: return OTP in response (never in production with real SECRET)
-    console.log(`[CascadeCity OTP] ${normalized}: ${otp}`);
+    // In production, require Twilio to be configured — never expose OTP in response
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "SMS delivery unavailable. Contact your administrator." },
+        { status: 503 }
+      );
+    }
+
+    // Development only: return OTP so developers can test without Twilio
     return NextResponse.json({
       success: true,
       delivered: false,
-      ...(process.env.NODE_ENV !== "production" && { devOtp: otp }),
+      devOtp: otp,
     });
   } catch {
     return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
