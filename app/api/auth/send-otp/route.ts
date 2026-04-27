@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     // In production, require Twilio to be configured — never expose OTP in response
     if (process.env.NODE_ENV === "production") {
       return NextResponse.json(
-        { error: "SMS delivery unavailable. Contact your administrator." },
+        { error: "SMS service not configured. Please contact your system administrator." },
         { status: 503 }
       );
     }

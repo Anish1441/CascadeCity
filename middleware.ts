@@ -36,6 +36,10 @@ async function isTokenValid(token: string): Promise<boolean> {
 
     // In production, missing AUTH_SECRET is a misconfiguration — treat token as invalid.
     // In development a well-known fallback is used so the app stays usable without secrets.
+    // Use AUTH_SECRET from environment. In development (only), fall back to a well-known
+    // constant so the app works without any configuration. This constant is intentionally
+    // public — it is NOT a secret in the cryptographic sense for dev environments.
+    // In production, missing AUTH_SECRET causes all tokens to fail verification (safe default).
     const secret =
       process.env.AUTH_SECRET ??
       (process.env.NODE_ENV !== "production"

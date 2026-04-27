@@ -28,7 +28,9 @@ function getSecret(): string {
 // In-memory OTP store.
 // NOTE: In production with multiple instances, replace with Redis (UPSTASH_REDIS_REST_URL)
 // to share state across servers. An in-memory store loses OTPs on restart.
-if (process.env.NODE_ENV === "production" && !process.env.UPSTASH_REDIS_REST_URL) {
+const _g = globalThis as Record<string, unknown>;
+if (process.env.NODE_ENV === "production" && !process.env.UPSTASH_REDIS_REST_URL && !_g.__otpWarnLogged) {
+  _g.__otpWarnLogged = true;
   console.warn(
     "[CascadeCity] WARNING: UPSTASH_REDIS_REST_URL is not set. " +
       "OTPs are stored in-memory and will be lost on server restart. " +

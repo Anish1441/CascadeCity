@@ -28,7 +28,9 @@ function sanitizePrompt(raw: unknown): string {
   if (!raw || typeof raw !== "string") return "";
   return String(raw)
     .replace(/[\x00-\x1F\x7F]/g, "")  // strip control characters
-    .replace(/[<>\\]/g, "")             // strip HTML/escape chars; keep [], {} for ranges
+    // Strip HTML/template injection chars. Square brackets [] are intentionally retained
+    // so users can write temperature ranges like [40-45°C]; they are not executable.
+    .replace(/[<>\\{}`]/g, "")
     .replace(INJECTION_PATTERN, "")    // remove injection keywords
     .trim()
     .slice(0, 300);

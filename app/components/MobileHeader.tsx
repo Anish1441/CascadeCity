@@ -48,7 +48,12 @@ export default function MobileHeader() {
 
       {/* Mobile overlay drawer */}
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation menu">
+        <div
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mobile-nav-title"
+        >
           <div
             className="absolute inset-0 bg-black/60"
             onClick={() => setOpen(false)}
@@ -61,7 +66,7 @@ export default function MobileHeader() {
             <div className="flex items-center justify-between p-4 border-b border-slate-700 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xl" aria-hidden="true">🌡️</span>
-                <span className="font-bold text-emerald-400">CascadeCity</span>
+                <span id="mobile-nav-title" className="font-bold text-emerald-400">CascadeCity</span>
               </div>
               <button
                 ref={closeButtonRef}
