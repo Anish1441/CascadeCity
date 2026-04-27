@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model District {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  code       String  @unique
+  division   String
+  area       Float?
+  population Int?
+  latitude   Float?
+  longitude  Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cities      City[]
+  weatherData WeatherData[]
+  alerts      Alert[]
+  policies    Policy[]
+}
+
+model City {
+  id         String  @id @default(cuid())
+  name       String
+  districtId String
+  latitude   Float?
+  longitude  Float?
+  isCapital  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  district District @relation(fields: [districtId], references: [id])
+}
+
+model WeatherData {
+  id          String  @id @default(cuid())
+  districtId  String?
+  cityName    String
+  temperature Float
+  humidity    Float
+  windSpeed   Float
+  rainfall    Float   @default(0)
+  condition   String
+  aqi         Int?
+
+  fetchedAt DateTime @default(now())
+
+  district District? @relation(fields: [districtId], references: [id])
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  title       String
+  message     String
+  type        AlertType
+  severity    Severity
+  districtId  String?
+  createdById String?
+  isActive    Boolean   @default(true)
+  sentAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  district   District?       @relation(fields: [districtId], references: [id])
+  createdBy  User?           @relation(fields: [createdById], references: [id])
+  deliveries AlertDelivery[]
+}
+
+model AlertDelivery {
+  id        String   @id @default(cuid())
+  alertId   String
+  phone     String
+  channel   Channel
+  status    String   @default("pending")
+  messageId String?
+  sentAt    DateTime?
+
+  alert Alert @relation(fields: [alertId], references: [id])
+}
+
+model Policy {
+  id          String       @id @default(cuid())
+  title       String
+  content     String
+  category    String
+  districtId  String?
+  status      PolicyStatus @default(DRAFT)
+  authorId    String?
+  aiGenerated Boolean      @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  district District?       @relation(fields: [districtId], references: [id])
+  author   User?           @relation(fields: [authorId], references: [id])
+  comments PolicyComment[]
+}
+
+model PolicyComment {
+  id       String  @id @default(cuid())
+  policyId String
+  authorId String?
+  content  String
+
+  createdAt DateTime @default(now())
+
+  policy Policy @relation(fields: [policyId], references: [id])
+  author User?  @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  email     String?
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alerts    Alert[]
+  policies  Policy[]
+  comments  PolicyComment[]
+  auditLogs AuditLog[]
+}
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+enum AlertType {
+  WEATHER
+  FLOOD
+  DROUGHT
+  PEST
+  DISEASE
+  MARKET
+  GOVERNMENT
+  EMERGENCY
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Channel {
+  SMS
+  WHATSAPP
+  BOTH
+}
+
+enum PolicyStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Role {
+  USER
+  OFFICER
+  ADMIN
+  SUPER_ADMIN
+}
