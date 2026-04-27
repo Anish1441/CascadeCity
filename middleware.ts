@@ -55,11 +55,12 @@ async function isTokenValid(token: string): Promise<boolean> {
       ["verify"]
     );
 
+    const payloadBytes = encoder.encode(payload);
     const valid = await crypto.subtle.verify(
       "HMAC",
       key,
       sigBytes,
-      encoder.encode(payload).buffer as ArrayBuffer
+      payloadBytes
     );
     if (!valid) return false;
 

@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
     }
 
     const otp = generateOTP();
-    storeOTP(normalized, otp);
 
     // Use real Twilio when credentials are configured
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -32,13 +31,15 @@ export async function POST(req: NextRequest) {
           from,
           to: normalized,
         });
+        // Only store OTP after successful SMS delivery
+        storeOTP(normalized, otp);
         return NextResponse.json({ success: true, delivered: true });
       } catch {
         // Twilio failed — fall through
       }
     }
 
-    // In production, require Twilio to be configured — never expose OTP in response
+    // In production, require Twilio to be configured — OTP is NOT stored
     if (process.env.NODE_ENV === "production") {
       return NextResponse.json(
         { error: "SMS service not configured. Please contact your system administrator." },
@@ -46,7 +47,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Development only: return OTP so developers can test without Twilio
+    // Development only: store OTP and return it so developers can test without Twilio
+    storeOTP(normalized, otp);
     return NextResponse.json({
       success: true,
       delivered: false,

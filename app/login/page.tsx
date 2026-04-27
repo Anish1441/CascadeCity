@@ -125,7 +125,7 @@ export default function LoginPage() {
                 <span className="text-slate-300 font-medium">{phone}</span>
               </p>
 
-              {devOtp && (
+              {devOtp && process.env.NODE_ENV !== "production" && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-3">
                   <p className="text-amber-300 text-xs font-semibold uppercase tracking-wide mb-1">
                     ⚠️ Development Mode — OTP not delivered via SMS

@@ -42,7 +42,8 @@ export default function MapComponent({ layer }: Props) {
     import("leaflet").then((leaflet) => {
       L = leaflet.default;
 
-      // Fix default icon paths using mergeOptions (no prototype mutation needed)
+      // Fix default icon paths by merging into the default icon configuration.
+      // mergeOptions updates the global defaults but avoids direct prototype assignment.
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",

@@ -26,14 +26,20 @@ const INJECTION_PATTERN =
 
 function sanitizePrompt(raw: unknown): string {
   if (!raw || typeof raw !== "string") return "";
-  return String(raw)
+  const cleaned = String(raw)
     .replace(/[\x00-\x1F\x7F]/g, "")  // strip control characters
     // Strip HTML/template injection chars. Square brackets [] are intentionally retained
-    // so users can write temperature ranges like [40-45°C]; they are not executable.
+    // for legitimate temperature/range notation (e.g. [40-45°C]). They are not executable
+    // in this context — they are passed as plain text to the LLM, not rendered as HTML.
     .replace(/[<>\\{}`]/g, "")
     .replace(INJECTION_PATTERN, "")    // remove injection keywords
-    .trim()
-    .slice(0, 300);
+    .trim();
+
+  if (cleaned.length <= 300) return cleaned;
+  // Truncate to the last complete word within the 300-char limit
+  const truncated = cleaned.slice(0, 300);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return lastSpace > 200 ? truncated.slice(0, lastSpace) : truncated;
 }
 
 // ── Valid category allowlist ───────────────────────────────────────────────
